@@ -1,0 +1,283 @@
+<!-- templates/result.html -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xử lý Video</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .video-info {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .operations {
+            margin-top: 30px;
+        }
+        
+        .operation-card {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .operation-card:hover {
+            border-color: #667eea;
+        }
+        
+        .operation-title {
+            font-size: 20px;
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Xử lý Video</h1>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="video-info">
+            <h3>📊 Thông tin video</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Độ phân giải</div>
+                    <div class="info-value">{{ video_info.width }}x{{ video_info.height }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Thời lượng</div>
+                    <div class="info-value">{{ "%.2f"|format(video_info.duration) }}s</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Kích thước</div>
+                    <div class="info-value">{{ "%.2f"|format(video_info.size / 1024 / 1024) }} MB</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">FPS</div>
+                    <div class="info-value">{{ "%.2f"|format(video_info.fps) }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Video Codec</div>
+                    <div class="info-value">{{ video_info.video_codec }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Audio Codec</div>
+                    <div class="info-value">{{ video_info.audio_codec }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="operations">
+            <h2 style="margin-bottom: 20px; color: #667eea;">Chọn thao tác xử lý</h2>
+            
+            <!-- Nén video -->
+            <div class="operation-card">
+                <div class="operation-title">🗜️ Nén Video</div>
+                <form method="POST" action="/process">
+                    <input type="hidden" name="filename" value="{{ filename }}">
+                    <input type="hidden" name="operation" value="compress">
+                    <div class="form-group">
+                        <label>Chất lượng (CRF: 0-51, thấp = chất lượng cao)</label>
+                        <input type="number" name="crf" value="28" min="0" max="51">
+                    </div>
+                    <button type="submit" class="btn">Nén Video</button>
+                </form>
+            </div>
+            
+            <!-- Resize -->
+            <div class="operation-card">
+                <div class="operation-title">📐 Thay đổi kích thước</div>
+                <form method="POST" action="/process">
+                    <input type="hidden" name="filename" value="{{ filename }}">
+                    <input type="hidden" name="operation" value="resize">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Chiều rộng (px)</label>
+                            <input type="number" name="width" value="1280">
+                        </div>
+                        <div class="form-group">
+                            <label>Chiều cao (px)</label>
+                            <input type="number" name="height" value="720">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Resize Video</button>
+                </form>
+            </div>
+            
+            <!-- Trích xuất audio -->
+            <div class="operation-card">
+                <div class="operation-title">🎵 Trích xuất Audio</div>
+                <form method="POST" action="/process">
+                    <input type="hidden" name="filename" value="{{ filename }}">
+                    <input type="hidden" name="operation" value="extract_audio">
+                    <p style="margin-bottom: 15px; color: #666;">Tách audio từ video và lưu dưới dạng MP3</p>
+                    <button type="submit" class="btn">Trích xuất Audio</button>
+                </form>
+            </div>
+            
+            <!-- Cắt video -->
+            <div class="operation-card">
+                <div class="operation-title">✂️ Cắt Video</div>
+                <form method="POST" action="/process">
+                    <input type="hidden" name="filename" value="{{ filename }}">
+                    <input type="hidden" name="operation" value="trim">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Bắt đầu (giây)</label>
+                            <input type="number" name="start_time" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Thời lượng (giây)</label>
+                            <input type="number" name="duration" value="10" min="1">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Cắt Video</button>
+                </form>
+            </div>
+            
+            <!-- Tạo thumbnail -->
+            <div class="operation-card">
+                <div class="operation-title">🖼️ Tạo Thumbnail</div>
+                <form method="POST" action="/process">
+                    <input type="hidden" name="filename" value="{{ filename }}">
+                    <input type="hidden" name="operation" value="thumbnail">
+                    <p style="margin-bottom: 15px; color: #666;">Tạo ảnh thumbnail từ giây thứ nhất của video</p>
+                    <button type="submit" class="btn">Tạo Thumbnail</button>
+                </form>
+            </div>
+        </div>
+        
+        <a href="/" style="text-decoration: none;">
+            <button class="btn btn-secondary">⬅️ Upload video khác</button>
+        </a>
+    </div>
+</body>
+</html>
